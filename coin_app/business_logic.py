@@ -14,6 +14,6 @@ class UserPreRegistrationFeatures():
         return user
 
     @staticmethod
-    def bonus_coins(user: User, count: int = 200):
+    def bonus_coins(user: User, count: int = 1000):
         user.balance += count  # type: ignore
         return user
