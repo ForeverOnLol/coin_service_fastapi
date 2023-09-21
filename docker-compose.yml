@@ -1,0 +1,29 @@
+services:
+  app:
+    build: .
+    command: bash -c 'while !</dev/tcp/postgres/5432; do sleep 1; done; uvicorn coin_app.main:app --host 0.0.0.0 --port 8000 --reload'
+    volumes:
+      - ./coin_app:/fast_api/coin_app
+    ports:
+      - 8000:8000
+    depends_on:
+      - postgres
+    environment:
+      - POSTGRES_USER=test
+      - POSTGRES_PASSWORD=1234
+      - POSTGRES_HOST=postgres
+      - POSTGRES_DB=coin_app
+
+
+  postgres:
+    image: postgres:14.8
+#    volumes:
+#      - postgres_data:/var/lib/postgresql@14/data:rw
+    expose:
+      - 5432
+    environment:
+      - POSTGRES_USER=test
+      - POSTGRES_PASSWORD=1234
+      - POSTGRES_DB=coin_app
+volumes:
+  postgres_data:
