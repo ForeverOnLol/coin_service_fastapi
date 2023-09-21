@@ -9,5 +9,3 @@ class User(BASE):
     username = Column(String, unique=True, index=True)
     password_hash = Column(String)
     balance = Column(Integer, default=0)
-
-
