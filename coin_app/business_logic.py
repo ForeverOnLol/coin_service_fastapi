@@ -7,12 +7,13 @@ class UserPreRegistrationFeatures():
     Пример: дать пользователю дополнительные монеты при регистрации.
     '''
     @staticmethod
-    def make(user: User):
-        task_queue = [UserPreRegistrationFeatures.__bonus_coins]
+    def make(user: User) -> User:
+        task_queue = [UserPreRegistrationFeatures.bonus_coins]
         for task in task_queue:
             task(user)
         return user
 
     @staticmethod
-    def __bonus_coins(user: User, count: int = 200):
+    def bonus_coins(user: User, count: int = 200):
         user.balance += count  # type: ignore
+        return user
