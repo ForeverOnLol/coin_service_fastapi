@@ -4,85 +4,90 @@ from coin_app.errors import (RecipientNotExist, SendCoinsError,
                              InsufficientCoins, UserAlreadyExist)
 
 
-def is_user_exist(username: str, db=get_session()) -> bool:
+def is_user_exist(username: str, session=get_session()) -> bool:
     '''
     Проверка существования юзера в БД
     :param username:
-    :param db:
+    :param session:
     :return:
     '''
-    user = (db.query(models.User)
-            .filter(models.User.username == username)
-            .first()
-            )
-    if user:
-        return True
-    return False
+    with session:
+        user = (session.query(models.User)
+                .filter(models.User.username == username)
+                .first()
+                )
+        if user:
+            return True
+        return False
 
 
-def get_user(username: str, db=get_session()) -> models.User:
+def get_user(username: str, session=get_session()) -> models.User:
     '''
     Получить юзера из БД
     :param username:
-    :param db:
+    :param session:
     :return:
     '''
-    user = (db.query(models.User)
-            .filter(models.User.username == username)
-            .first()
-            )
-    return user
+    with session:
+        user = (session.query(models.User)
+                .filter(models.User.username == username)
+                .first()
+                )
+        return user
 
 
-def create_user(user: models.User, db=get_session()) -> models.User:
+def create_user(user: models.User, session=get_session()) -> models.User:
     '''
     Создать пользователя в БД.
     :param user:
-    :param db:
+    :param session:
     :return:
     '''
-    if is_user_exist(username=str(user.username)):
-        raise UserAlreadyExist(
-            f'Пользователь {user.username} уже существует в БД.'
-        )
-    db.add(user)
-    db.commit()
+    with session:
+        if is_user_exist(username=str(user.username)):
+            raise UserAlreadyExist(
+                f'Пользователь {user.username} уже существует в БД.'
+            )
+        session.add(user)
+        session.commit()
     return user
 
 
 def transfer_coins(username_current_user: str, username_recipient: str,
-                   amount: int, db=get_session()) -> None:
+                   amount: int, session=get_session()) -> None:
     '''
     Перевод монет
     :param username_current_user:
     :param username_recipient:
     :param amount:
-    :param db:
+    :param session:
     :return:
     '''
-    recipient = (db.query(models.User).
-                 filter(models.User.username == username_recipient)
-                 .first()
-                 )
-    if not recipient:
-        raise RecipientNotExist(f'Пользователь {username_recipient}'
-                                f' не существует.')
-    user = (db.query(models.User)
-            .filter(models.User.username == username_current_user)
-            .first()
-            )
-    if user.balance - amount < 0:
-        raise InsufficientCoins('Недостаточно '
-                                'средств.'
-                                )
-    try:
-        user = (db.query(models.User)
-                .filter(models.User.username == user.username)
+    with session:
+        recipient = (session.query(models.User).
+                     filter(models.User.username == username_recipient)
+                     .first()
+                     )
+        if not recipient:
+            raise RecipientNotExist(f'Пользователь {username_recipient}'
+                                    f' не существует.')
+        user = (session.query(models.User)
+                .filter(models.User.username == username_current_user)
                 .first()
                 )
-        user.balance -= amount
-        recipient.balance += amount
-        db.commit()
-    except Exception:
-        db.rollback()
-        raise SendCoinsError('Ошибка транзакции. Повторите позднее.')
+        if user.balance - amount < 0:
+            raise InsufficientCoins('Недостаточно '
+                                    'средств.'
+                                    )
+        try:
+            user = (session.query(models.User)
+                    .filter(models.User.username == user.username)
+                    .first()
+                    )
+            user.balance -= amount
+            recipient.balance += amount
+            session.commit()
+        except Exception:
+            session.rollback()
+
+            raise SendCoinsError('Ошибка транзакции. Повторите позднее.')

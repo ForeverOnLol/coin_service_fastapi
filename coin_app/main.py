@@ -47,8 +47,9 @@ async def get_own_balance(
         current_user:
         Annotated[schemas.CurrentUser, Depends(get_current_user)]
 ):
-    return [{'username': f'{current_user.username}',
-             'balance': f'{current_user.balance}'}]
+    user = crud.get_user(username=current_user.username)
+    return [{'username': f'{user.username}',
+             'balance': f'{user.balance}'}]
 
 
 @app.post('/me/send_coins/', status_code=200)
