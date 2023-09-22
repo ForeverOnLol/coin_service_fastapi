@@ -80,10 +80,6 @@ def transfer_coins(username_current_user: str, username_recipient: str,
                                     'средств.'
                                     )
         try:
-            user = (session.query(models.User)
-                    .filter(models.User.username == user.username)
-                    .first()
-                    )
             user.balance -= amount
             recipient.balance += amount
             session.commit()
